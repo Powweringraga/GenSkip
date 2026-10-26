@@ -1,4 +1,4 @@
-# ⚡ GenSkip (Genshin Impact Auto Lore Skip)
+# ⚡ GenSkip (Genshin Impact Auto Lore Skip) - Beta
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/YOUR_USERNAME/Genshin-Skip?style=for-the-badge&color=ffd700" alt="Release">
