@@ -32,7 +32,7 @@
 2. Extract the `GenSkip` folder onto your computer.
 3. Launch **Genshin Impact** (Borderless Windowed mode recommended).
 4. Right-click **`main.exe`** and select **Run as administrator** (Required to send keystrokes and clicks to the game).
-5. Click **START** on the GUI to begin, and press **STOP** or hit **`F12`** to pause/stop at any time.
+5. Click **START** on the GUI to begin, and press **STOP** or hit **`H`** to pause/stop at any time.
 
 #### For Developers (Running from Source)
 If you wish to modify or run the source code directly, install the required dependencies:
