@@ -20,7 +20,7 @@
 - 🚀 **Automatic Dialogue Detection:** Real-time screen scanning and dialogue choice detection via OpenCV Template Matching.
 - ⌨️ **Smart Key Pressing:** Auto-spams the `F` key when no dialogue choices are present to speed through text.
 - 💻 **Modern Graphical User Interface:** Intuitive control panel allowing you to `START` and `STOP` with a single click.
-- 🛑 **Emergency Stop Hotkey:** Press **`F12`** anytime to instantly halt the bot directly from inside the game.
+- 🛑 **Emergency Stop Hotkey:** Press **`H`** anytime to instantly halt the bot directly from inside the game.
 - 📦 **Standalone Executable:** Fully packaged `.exe` file—no Python installation or library setup required for end users.
 
 ---
