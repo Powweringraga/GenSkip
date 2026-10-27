@@ -1,9 +1,9 @@
 # ⚡ GenSkip (Genshin Impact Auto Lore Skip) - Beta
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/YOUR_USERNAME/Genshin-Skip?style=for-the-badge&color=ffd700" alt="Release">
-  <img src="https://img.shields.io/github/downloads/YOUR_USERNAME/Genshin-Skip/total?style=for-the-badge&color=28a745" alt="Downloads">
-  <img src="https://img.shields.io/github/license/YOUR_USERNAME/Genshin-Skip?style=for-the-badge&color=007bff" alt="License">
+  <img src="https://img.shields.io/github/v/release/Powweringraga/Genshin-Skip?style=for-the-badge&color=ffd700" alt="Release">
+  <img src="https://img.shields.io/github/downloads/Powweringraga/Genshin-Skip/total?style=for-the-badge&color=28a745" alt="Downloads">
+  <img src="https://img.shields.io/github/license/Powweringraga/Genshin-Skip?style=for-the-badge&color=007bff" alt="License">
 </p>
 
 ---
