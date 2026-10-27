@@ -26,7 +26,7 @@ def bot_loop(status_label, log_box):
   capturer = capture.ScreenCapturer()
 
   while is_running:
-    if keyboard.is_pressed("f12"):
+    if keyboard.is_pressed("H"):
       stop_bot(status_label, log_box)
       break
 
