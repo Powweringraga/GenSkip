@@ -1,3 +1,7 @@
 .env
 __pycache__/
 *.exe
+build/
+dist/
+*.zip
+__pycache__/
