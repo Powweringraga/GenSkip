@@ -14,8 +14,18 @@ if exist "dist\main" (
     xcopy /E /I /Y "templates" "dist\main\templates"
 )
 
+
 echo.
 echo ===================================================
 echo   HOAN TAT! File .exe va thu muc nam tai: dist\main\
 echo ===================================================
+@echo off
+:: các câu lệnh update cũ của bạn giữ nguyên ở đây...
+
+:: Bổ sung lệnh ép Windows cập nhật Date Modified sang thời gian hiện tại:
+powershell -Command "(Get-Item 'main.py').LastWriteTime = Get-Date"
+powershell -Command "(Get-Item 'vision.py').LastWriteTime = Get-Date"
+powershell -Command "(Get-Item 'LLM_engine.py').LastWriteTime = Get-Date"
+
+echo [OK] Da cap nhat thoi gian modified cho cac file!
 pause

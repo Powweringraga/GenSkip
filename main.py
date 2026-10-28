@@ -41,7 +41,7 @@ class GenSkipDashboard(ctk.CTk):
     # Khởi tạo AI Engine trỏ tới Server Proxy
     try:
       self.ai_engine = GenSkipAI(
-          server_url="https://genskip-server.onrender.com/summarize"
+          server_url="https://genskipserver.vercel.app/summarize"
       )
     except Exception as e:
       self.ai_engine = None
@@ -160,12 +160,11 @@ class GenSkipDashboard(ctk.CTk):
     dash_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
     self.frames["dashboard"] = dash_frame
 
-    # --- TOP METRICS CARDS ---
+    # METRICS CARDS
     metrics_frame = ctk.CTkFrame(dash_frame, fg_color="transparent")
     metrics_frame.pack(fill="x", pady=(0, 12))
     metrics_frame.grid_columnconfigure((0, 1, 2, 3), weight=1, uniform="card")
 
-    # Card 1: State
     c1 = ctk.CTkFrame(metrics_frame, fg_color="#161926", corner_radius=8)
     c1.grid(row=0, column=0, padx=4, sticky="nsew")
     ctk.CTkLabel(
@@ -179,7 +178,6 @@ class GenSkipDashboard(ctk.CTk):
     )
     self.lbl_state.pack(anchor="w", padx=12, pady=(2, 8))
 
-    # Card 2: Skips Count
     c2 = ctk.CTkFrame(metrics_frame, fg_color="#161926", corner_radius=8)
     c2.grid(row=0, column=1, padx=4, sticky="nsew")
     ctk.CTkLabel(
@@ -193,7 +191,6 @@ class GenSkipDashboard(ctk.CTk):
     )
     self.lbl_skips.pack(anchor="w", padx=12, pady=(2, 8))
 
-    # Card 3: Session Time
     c3 = ctk.CTkFrame(metrics_frame, fg_color="#161926", corner_radius=8)
     c3.grid(row=0, column=2, padx=4, sticky="nsew")
     ctk.CTkLabel(
@@ -207,7 +204,6 @@ class GenSkipDashboard(ctk.CTk):
     )
     self.lbl_time.pack(anchor="w", padx=12, pady=(2, 8))
 
-    # Card 4: Mode Status
     c4 = ctk.CTkFrame(metrics_frame, fg_color="#161926", corner_radius=8)
     c4.grid(row=0, column=3, padx=4, sticky="nsew")
     ctk.CTkLabel(
@@ -221,7 +217,7 @@ class GenSkipDashboard(ctk.CTk):
     )
     self.lbl_mode.pack(anchor="w", padx=12, pady=(2, 8))
 
-    # --- ACTION BUTTONS ---
+    # ACTION BUTTONS
     ctrl_frame = ctk.CTkFrame(dash_frame, fg_color="#161926", corner_radius=8)
     ctrl_frame.pack(fill="x", pady=(0, 12))
 
@@ -272,7 +268,7 @@ class GenSkipDashboard(ctk.CTk):
     )
     self.lbl_status_text.pack(side="left", padx=16)
 
-    # --- CONSOLE & TELEMETRY ---
+    # CONSOLE & TELEMETRY
     lower_frame = ctk.CTkFrame(dash_frame, fg_color="transparent")
     lower_frame.pack(fill="x", pady=(0, 12))
     lower_frame.grid_columnconfigure(0, weight=2)
@@ -311,10 +307,10 @@ class GenSkipDashboard(ctk.CTk):
 
     self._add_telemetry_row(tele_panel, "Target ROI X", "1000 - 1800")
     self._add_telemetry_row(tele_panel, "Target ROI Y", "400 - 1000")
-    self._add_telemetry_row(tele_panel, "Action Mode", "Auto Click F / Option")
+    self._add_telemetry_row(tele_panel, "AI Mode", "Smart Choice & Summarize")
     self._add_telemetry_row(tele_panel, "Hotkeys", "H / F12 Active")
 
-    # --- KHUNG HIỂN THỊ LLM LORE SUMMARY ---
+    # LLM LORE SUMMARY PANEL
     ai_panel = ctk.CTkFrame(dash_frame, fg_color="#161926", corner_radius=8)
     ai_panel.pack(fill="x")
 
@@ -348,45 +344,17 @@ class GenSkipDashboard(ctk.CTk):
         text_color="#00a8ff",
     ).pack(anchor="w", padx=20, pady=(16, 12))
 
-    # Cấu hình Proxy Server URL
     row_server = ctk.CTkFrame(settings_frame, fg_color="transparent")
     row_server.pack(fill="x", padx=20, pady=8)
     ctk.CTkLabel(
         row_server,
-        text="Proxy Server URL:",
+        text="Proxy Server Base URL:",
         font=ctk.CTkFont(size=13),
         text_color="#00e676",
     ).pack(side="left")
     self.entry_server_url = ctk.CTkEntry(row_server, width=280)
-    self.entry_server_url.insert(
-        0, "https://genskip-server.onrender.com/summarize"
-    )
+    self.entry_server_url.insert(0, "https://genskip-server.onrender.com")
     self.entry_server_url.pack(side="right")
-
-    # Phím tắt Hotkey
-    row1 = ctk.CTkFrame(settings_frame, fg_color="transparent")
-    row1.pack(fill="x", padx=20, pady=8)
-    ctk.CTkLabel(
-        row1,
-        text="Toggle Hotkey (Start/Pause):",
-        font=ctk.CTkFont(size=13),
-        text_color="#ffffff",
-    ).pack(side="left")
-    entry_toggle = ctk.CTkEntry(row1, width=120)
-    entry_toggle.insert(0, "H")
-    entry_toggle.pack(side="right")
-
-    row2 = ctk.CTkFrame(settings_frame, fg_color="transparent")
-    row2.pack(fill="x", padx=20, pady=8)
-    ctk.CTkLabel(
-        row2,
-        text="Emergency Stop Hotkey:",
-        font=ctk.CTkFont(size=13),
-        text_color="#ffffff",
-    ).pack(side="left")
-    entry_stop = ctk.CTkEntry(row2, width=120)
-    entry_stop.insert(0, "F12")
-    entry_stop.pack(side="right")
 
     btn_save = ctk.CTkButton(
         settings_frame,
@@ -400,7 +368,9 @@ class GenSkipDashboard(ctk.CTk):
   def save_settings(self):
     try:
       server_url = self.entry_server_url.get().strip()
-      self.ai_engine = GenSkipAI(server_url=server_url)
+      self.ai_engine = GenSkipAI(
+      server_url="https://genskipserver.vercel.app/summarize"
+      )
       self.lbl_ai_summary.configure(
           text="AI Engine sẵn sàng tóm tắt hội thoại."
       )
@@ -505,7 +475,7 @@ class GenSkipDashboard(ctk.CTk):
     global is_running, is_paused
     capturer = capture.ScreenCapturer()
     template_path = get_template_path()
-    last_llm_time = 0
+    last_llm_time = time.time()
 
     while is_running:
       if keyboard.is_pressed("f12"):
@@ -521,26 +491,53 @@ class GenSkipDashboard(ctk.CTk):
 
       if not is_paused:
         img_roi = capturer.grab_roi(DIALOGUE_ROI)
-        found, coords = vision.VisionEngine.find_template(
-            img_roi, template_path, threshold=0.75
+
+        # 1. Thu thập chữ thoại liên tục vào bộ đệm (Buffer)
+        if gui.ai_engine:
+          gui.ai_engine.extract_text(img_roi)
+
+        # 2. Phát hiện các phương án lựa chọn hội thoại
+        options_text, options_coords = vision.VisionEngine.extract_all_choices(
+            img_roi, template_path, threshold=0.70
         )
 
-        if found and coords is not None:
-          real_x = DIALOGUE_ROI["left"] + coords[0]
-          real_y = DIALOGUE_ROI["top"] + coords[1]
-          input.human_click(real_x, real_y)
-          gui.increment_skip()
-          gui.log("Selected dialogue option")
+        if options_text and options_coords:
+          # NẾU CÓ TỪ 2 LỰA CHỌN TRỞ LÊN ➔ GỌI AI SMART CHOICE
+          if len(options_text) > 1 and gui.ai_engine:
+            gui.log(f"Phát hiện {len(options_text)} phương án lựa chọn...")
+            recent_context = "\n".join(gui.ai_engine.buffer[-5:])
+            best_idx = gui.ai_engine.select_best_choice(
+                context=recent_context, options=options_text
+            )
 
-          # Gọi AI Tóm tắt Lore định kỳ mỗi 5 giây
-          if gui.ai_engine and (time.time() - last_llm_time > 5):
-            last_llm_time = time.time()
-            text = gui.ai_engine.extract_text(img_roi)
-            if text:
-              summary = gui.ai_engine.summarize_lore(text)
-              gui.lbl_ai_summary.configure(text=summary)
+            # Click vào tọa độ Y tương ứng với lựa chọn AI khuyên (Index 1-based)
+            target_rel_x, target_rel_y = options_coords[best_idx - 1]
+            real_x = DIALOGUE_ROI["left"] + target_rel_x
+            real_y = DIALOGUE_ROI["top"] + target_rel_y
+
+            input.human_click(real_x, real_y)
+            gui.increment_skip()
+            gui.log(
+                f"🤖 AI chọn Option {best_idx}: '{options_text[best_idx-1]}'"
+            )
+          else:
+            # Nếu chỉ có 1 nút duy nhất
+            target_rel_x, target_rel_y = options_coords[0]
+            real_x = DIALOGUE_ROI["left"] + target_rel_x
+            real_y = DIALOGUE_ROI["top"] + target_rel_y
+            input.human_click(real_x, real_y)
+            gui.increment_skip()
+            gui.log("Click option mặc định.")
         else:
+          # Không có bảng lựa chọn ➔ Nhấn F tua thoại thông thường
           input.human_press_f()
+
+        # 3. Định kỳ mỗi 8 giây gửi toàn bộ bộ đệm thoại lên Gemini tóm tắt Lore
+        if gui.ai_engine and (time.time() - last_llm_time > 8):
+          last_llm_time = time.time()
+          summary = gui.ai_engine.summarize_buffered_lore()
+          if summary:
+            gui.lbl_ai_summary.configure(text=summary)
 
       time.sleep(0.18)
 
