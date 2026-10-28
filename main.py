@@ -347,6 +347,7 @@ class GenSkipDashboard(ctk.CTk):
 
       row_server = ctk.CTkFrame(settings_frame, fg_color="transparent")
       row_server.pack(fill="x", padx=20, pady=8)
+
       ctk.CTkLabel(
           row_server,
           text="Proxy Server Base URL:",
@@ -354,30 +355,62 @@ class GenSkipDashboard(ctk.CTk):
           text_color="#00e676",
       ).pack(side="left")
 
-      # Cấu hình ô nhập URL ở chế độ khoá (disabled)
-      self.entry_server_url = ctk.CTkEntry(
-          row_server, width=320, state="disabled"
+      # Nút Unlock có biểu tượng khóa
+      self.btn_unlock = ctk.CTkButton(
+          row_server,
+          text="🔒 Unlock",
+          width=70,
+          fg_color="#2f3651",
+          hover_color="#3e4769",
+          command=self.unlock_settings,
       )
-      self.entry_server_url.configure(
-          state="normal"
-      )  # Tạm thời mở để chèn text
+      self.btn_unlock.pack(side="right", padx=(8, 0))
+
+      # Ô nhập URL ở trạng thái mặc định bị khóa (disabled)
+      self.entry_server_url = ctk.CTkEntry(
+          row_server, width=280, state="disabled"
+      )
+      self.entry_server_url.configure(state="normal")
       self.entry_server_url.insert(0, DEFAULT_SERVER_URL)
-      self.entry_server_url.configure(
-          state="disabled"
-      )  # Khóa lại không cho chỉnh sửa
+      self.entry_server_url.configure(state="disabled")
       self.entry_server_url.pack(side="right")
 
-      # Nút Save Settings (Cũng có thể khóa luôn)
-      btn_save = ctk.CTkButton(
+      # Nút Save Settings mặc định bị ẩn/khóa
+      self.btn_save = ctk.CTkButton(
           settings_frame,
           text="Save Settings",
           fg_color="#1f2336",
           text_color="#6c7293",
-          state="disabled",  # Khóa nút bấm
+          state="disabled",
           command=self.save_settings,
       )
-      btn_save.pack(anchor="e", padx=20, pady=20)
-      
+      self.btn_save.pack(anchor="e", padx=20, pady=20)
+
+    def unlock_settings(self):
+      """Mở dialog yêu cầu nhập mật khẩu để cho phép chỉnh sửa Settings."""
+      dialog = ctk.CTkInputDialog(
+          text="Nhập mật khẩu quản trị để mở khóa Settings:",
+          title="Xác thực Admin",
+      )
+      password = dialog.get_input()
+
+      # Đặt mật khẩu mở khóa tại đây (Ví dụ: admin123)
+      ADMIN_PASSWORD = "p0wwie"
+
+      if password == ADMIN_PASSWORD:
+        # Nhập đúng password -> Mở khóa ô URL và nút Save
+        self.entry_server_url.configure(state="normal")
+        self.btn_save.configure(
+            state="normal", fg_color="#00a8ff", text_color="#ffffff"
+        )
+        self.btn_unlock.configure(
+            text="🔓 Unlocked", state="disabled", fg_color="#00e676"
+        )
+        self.log("Settings đã được mở khóa thành công.")
+      elif password is not None:
+        # Nhập sai password -> Thông báo lỗi
+        self.log("Mở khóa thất bại: Mật khẩu không chính xác!")
+
     def save_settings(self):
         try:
             server_url = self.entry_server_url.get().strip()
