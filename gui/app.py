@@ -24,24 +24,50 @@ def log_message(textbox, msg):
 def bot_loop(status_label, log_box):
   global is_running
   capturer = capture.ScreenCapturer()
+  missing_window_logged = False
 
   while is_running:
     if keyboard.is_pressed("H"):
       stop_bot(status_label, log_box)
       break
 
-    img_roi = capturer.grab_roi(DIALOGUE_ROI)
+    game_hwnd = capturer.find_game_window()
+    if game_hwnd is None:
+      if not missing_window_logged:
+        log_message(log_box, "Genshin window not found. Open the game before starting.")
+        missing_window_logged = True
+      time.sleep(0.5)
+      continue
+    missing_window_logged = False
+
+    try:
+      img_roi = capturer.grab_roi(DIALOGUE_ROI, hwnd=game_hwnd)
+    except (OSError, ValueError) as error:
+      log_message(log_box, f"Unable to capture the Genshin window: {error}")
+      stop_bot(status_label, log_box)
+      break
+
     found, coords = vision.VisionEngine.find_template(
-        img_roi, "templates/dialogue_option.png", threshold=0.75
+        img_roi, "templates/dialouge_option.png", threshold=0.75
     )
 
     if found and coords is not None:
       real_x = DIALOGUE_ROI["left"] + coords[0]
       real_y = DIALOGUE_ROI["top"] + coords[1]
-      input.human_click(real_x, real_y)
+      try:
+        input.human_click(real_x, real_y, hwnd=game_hwnd)
+      except (OSError, ValueError) as error:
+        log_message(log_box, f"Unable to send input to Genshin: {error}")
+        stop_bot(status_label, log_box)
+        break
       log_message(log_box, "[+] Phát hiện thoại -> Click")
     else:
-      input.human_press_f()
+      try:
+        input.human_press_f(hwnd=game_hwnd)
+      except (OSError, ValueError) as error:
+        log_message(log_box, f"Unable to send input to Genshin: {error}")
+        stop_bot(status_label, log_box)
+        break
 
     time.sleep(0.2)
 

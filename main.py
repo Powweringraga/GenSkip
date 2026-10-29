@@ -6,6 +6,7 @@ import capture
 import customtkinter as ctk
 import input
 import keyboard
+import requests
 import vision
 from LLM_engine import GenSkipAI
 
@@ -20,15 +21,24 @@ bot_thread = None
 start_time = None
 skip_count = 0
 
-# URL Mặc định của Vercel Proxy Server (Cần có /api)
-DEFAULT_SERVER_URL = "https://genskipserver.vercel.app/api"
+DEFAULT_SERVER_URL = "https://genskipserver.vercel.app"
 
 DIALOGUE_ROI = {"top": 400, "left": 1000, "width": 800, "height": 600}
 
 
-def get_template_path(filename="dialogue_option.png"):
+def get_template_path(filename="dialouge_option.png"):
     base_path = getattr(sys, "_MEIPASS", os.path.abspath("."))
     return os.path.join(base_path, "templates", filename)
+
+
+def _send_game_input(gui, action, *args, **kwargs):
+    try:
+        action(*args, **kwargs)
+    except (OSError, ValueError) as error:
+        gui.log(f"Unable to send input to Genshin: {error}")
+        gui.stop_bot()
+        return False
+    return True
 
 
 class GenSkipDashboard(ctk.CTk):
@@ -317,7 +327,7 @@ class GenSkipDashboard(ctk.CTk):
 
         ctk.CTkLabel(
             ai_panel,
-            text="✨ Live Lore Summary (Powered by Proxy AI)",
+            text="✨ Live Quest Dialogue Summary (Powered by Proxy AI)",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color="#00e676",
         ).pack(anchor="w", padx=12, pady=(8, 2))
@@ -521,6 +531,7 @@ class GenSkipDashboard(ctk.CTk):
         capturer = capture.ScreenCapturer()
         template_path = get_template_path()
         last_llm_time = time.time()
+        missing_window_logged = False
 
         while is_running:
             if keyboard.is_pressed("f12"):
@@ -532,14 +543,32 @@ class GenSkipDashboard(ctk.CTk):
                     gui.pause_bot()
                 else:
                     gui.start_bot()
-                time.sleep(0.3)
+                time.sleep(0.03)  # Tránh nhấn liên tục
 
             if not is_paused:
-                img_roi = capturer.grab_roi(DIALOGUE_ROI)
+                game_hwnd = capturer.find_game_window()
+                if game_hwnd is None:
+                    if not missing_window_logged:
+                        gui.log("Genshin window not found. Open the game before starting.")
+                        missing_window_logged = True
+                    time.sleep(0.5)
+                    continue
+                missing_window_logged = False
+
+                try:
+                    img_roi = capturer.grab_roi(DIALOGUE_ROI, hwnd=game_hwnd)
+                except (OSError, ValueError) as error:
+                    gui.log(f"Unable to capture the Genshin window: {error}")
+                    gui.stop_bot()
+                    break
 
                 # 1. Thu thập chữ thoại liên tục vào bộ đệm (Buffer)
                 if gui.ai_engine:
-                    gui.ai_engine.extract_text(img_roi)
+                    try:
+                        gui.ai_engine.extract_text(img_roi)
+                    except RuntimeError as error:
+                        gui.log(f"Dialogue OCR unavailable: {error}")
+                        gui.ai_engine = None
 
                 # 2. Phát hiện các phương án lựa chọn hội thoại
                 options_text, options_coords = vision.VisionEngine.extract_all_choices(
@@ -551,16 +580,29 @@ class GenSkipDashboard(ctk.CTk):
                     if len(options_text) > 1 and gui.ai_engine:
                         gui.log(f"Phát hiện {len(options_text)} phương án lựa chọn...")
                         recent_context = "\n".join(gui.ai_engine.buffer[-5:])
-                        best_idx = gui.ai_engine.select_best_choice(
-                            context=recent_context, options=options_text
-                        )
+                        try:
+                            best_idx = gui.ai_engine.select_best_choice(
+                                context=recent_context, options=options_text
+                            )
+                        except (requests.RequestException, ValueError) as error:
+                            gui.log(
+                                f"AI choice unavailable; selecting the first option: {error}"
+                            )
+                            best_idx = 1
 
                         # Click vào tọa độ Y tương ứng với lựa chọn AI khuyên (Index 1-based)
                         target_rel_x, target_rel_y = options_coords[best_idx - 1]
                         real_x = DIALOGUE_ROI["left"] + target_rel_x
                         real_y = DIALOGUE_ROI["top"] + target_rel_y
 
-                        input.human_click(real_x, real_y)
+                        if not _send_game_input(
+                            gui,
+                            input.human_click,
+                            real_x,
+                            real_y,
+                            hwnd=game_hwnd,
+                        ):
+                            break
                         gui.increment_skip()
                         gui.log(
                             f"🤖 AI chọn Option {best_idx}: '{options_text[best_idx-1]}'"
@@ -570,19 +612,31 @@ class GenSkipDashboard(ctk.CTk):
                         target_rel_x, target_rel_y = options_coords[0]
                         real_x = DIALOGUE_ROI["left"] + target_rel_x
                         real_y = DIALOGUE_ROI["top"] + target_rel_y
-                        input.human_click(real_x, real_y)
+                        if not _send_game_input(
+                            gui,
+                            input.human_click,
+                            real_x,
+                            real_y,
+                            hwnd=game_hwnd,
+                        ):
+                            break
                         gui.increment_skip()
                         gui.log("Click option mặc định.")
                 else:
                     # Không có bảng lựa chọn ➔ Nhấn F tua thoại thông thường
-                    input.human_press_f()
+                    if not _send_game_input(
+                        gui, input.human_press_f, hwnd=game_hwnd
+                    ):
+                        break
 
-                # 3. Định kỳ mỗi 8 giây gửi toàn bộ bộ đệm thoại lên Gemini tóm tắt Lore
+                # 3. Summarize captured dialogue for the current quest.
                 if gui.ai_engine and (time.time() - last_llm_time > 8):
                     last_llm_time = time.time()
                     summary = gui.ai_engine.summarize_buffered_lore()
-                    if summary:
+                    if summary and not summary.startswith("AI summary unavailable:"):
                         gui.lbl_ai_summary.configure(text=summary)
+                    elif summary:
+                        gui.log(summary)
 
             time.sleep(0.18)
 

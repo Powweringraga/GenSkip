@@ -1,16 +1,36 @@
 import os
+import shutil
 import cv2
 import numpy as np
 from PIL import Image
 import pytesseract
 
-# Khai báo đường dẫn Tesseract trên Windows
 pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    os.environ.get("TESSERACT_CMD")
+    or shutil.which("tesseract")
+    or r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 )
 
 
 class VisionEngine:
+
+  @staticmethod
+  def extract_dialogue_text(img_roi):
+    """Read visible dialogue text from a BGR screenshot region."""
+    gray = cv2.cvtColor(img_roi, cv2.COLOR_BGR2GRAY)
+    enlarged = cv2.resize(
+        gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC
+    )
+    try:
+      text = pytesseract.image_to_string(
+          enlarged, lang="eng", config="--psm 6"
+      )
+    except pytesseract.TesseractNotFoundError as error:
+      raise RuntimeError(
+          "Tesseract OCR was not found. Install Tesseract or set TESSERACT_CMD."
+      ) from error
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return "\n".join(lines)
 
   @staticmethod
   def find_template(haystack_img, needle_img_path, threshold=0.8):
