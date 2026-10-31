@@ -36,7 +36,6 @@ Background input depends on Genshin accepting Windows window messages, and backg
 
 #### For Developers (Running from Source)
 If you wish to modify or run the source code directly, install the required dependencies:
-```
-
 Dialogue transcription also requires the Tesseract OCR application with its English language data. Add Tesseract to `PATH`, or set `TESSERACT_CMD` to its executable path before launching GenSkip.powershell
+```
 py -m pip install mss pyautogui pillow opencv-python numpy customtkinter keyboard pyinstaller pytesseract
